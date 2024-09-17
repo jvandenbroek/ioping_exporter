@@ -62,8 +62,8 @@ var (
 
 	totalTime = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: prometheus.BuildFQName(namespace, "io", "millisecs"),
-			Help: "Total number of millisec writing to this target.",
+			Name: prometheus.BuildFQName(namespace, "io", "microsecs"),
+			Help: "Total number of microsec writing to this target.",
 		},
 		[]string{"target"},
 	)
@@ -252,8 +252,8 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) (up float64) {
 		values := <-e.ch
 		e.totalIOs.WithLabelValues(e.target).Add(values[0])
 		e.totalBytes.WithLabelValues(e.target).Add(values[0] * 4 * 1024)
-		e.totalTime.WithLabelValues(e.target).Add(values[5] / 1000000)
-		e.ioLatency.WithLabelValues(e.target).Observe(values[5] / 1000000)
+		e.totalTime.WithLabelValues(e.target).Add(values[5] / 1000)
+		e.ioLatency.WithLabelValues(e.target).Observe(values[5] / 1000)
 	}
 
 	return 1
@@ -264,11 +264,11 @@ func main() {
 		listenAddress     = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9101").String()
 		metricsPath       = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 		ioPingOptions     = kingpin.Flag("ioping.options", "Additional options to run ioping with.").Default("").String()
-		ioPingStart       = kingpin.Flag("ioping.latency.start", "Start of the exponential distribution of IO lantency in ms").Default("1").Int()
-		ioPingLinearCount = kingpin.Flag("ioping.latency.linear_count", "Number of bucket on the linear part of the distribution of IO lantency in ms").Default("20").Int()
-		ioPingLinearStep  = kingpin.Flag("ioping.latency.linear_step", "Step of the linear part of the distribution of IO lantency in ms").Default("1").Int()
-		ioPingFactor      = kingpin.Flag("ioping.latency.factor", "Factor of the exponential distribution of IO lantency").Default("2").Int()
-		ioPingNBuckets    = kingpin.Flag("ioping.latency.buckets", "Number of buckets of the exponential distribution of IO lantency").Default("20").Int()
+		ioPingStart       = kingpin.Flag("ioping.latency.start", "Start of the exponential distribution of IO latency in μs").Default("100").Int()
+		ioPingLinearCount = kingpin.Flag("ioping.latency.linear_count", "Number of bucket on the linear part of the distribution of IO latency in μs").Default("4").Int()
+		ioPingLinearStep  = kingpin.Flag("ioping.latency.linear_step", "Step of the linear part of the distribution of IO latency in μs").Default("200").Int()
+		ioPingFactor      = kingpin.Flag("ioping.latency.factor", "Factor of the exponential distribution of IO latency").Default("3").Int()
+		ioPingNBuckets    = kingpin.Flag("ioping.latency.buckets", "Number of buckets of the exponential distribution of IO latency").Default("10").Int()
 		ioPingTargets     = kingpin.Arg("ioping.target", "Target filesystem to monitor.").Default("pwd=./").StringMap()
 	)
 
